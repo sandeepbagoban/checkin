@@ -13,3 +13,46 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  events    Event[]
+}
+
+model Event {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  name            String
+  slug            String    @unique // for URL or QR
+  startDate       DateTime
+  endDate         DateTime
+  maxImages       Int       @default(10)
+  maxVideos       Int       @default(2)
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id])
+  uploads         Upload[]
+}
+
+model Upload {
+  id               Int       @id @default(autoincrement())
+  eventId          Int
+  guestName        String
+  guestEmail       String
+  fileUrl          String
+  fileType         String     // image, video, text
+  createdAt        DateTime   @default(now())
+
+  isNsfw           Boolean    @default(false)
+  moderationStatus String     @default("pending") // approved, rejected
+  rejectedReason   String?
+
+  event            Event      @relation(fields: [eventId], references: [id])
+}
